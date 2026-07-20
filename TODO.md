@@ -1,0 +1,3 @@
+- make buttons call function when clicked
+- autoload settings
+- validation
