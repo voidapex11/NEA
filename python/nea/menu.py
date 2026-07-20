@@ -3,14 +3,18 @@ from constants import *
 import pygame
 # import random
 
+def announce():
+        print()
 
 class MenuItem:
         def __init__(self,text, position: pygame.Rect):
                 self.text = text
+                self.hooks = {"mouse": []}
                 
                 self.outer_rect = position
                 self.text_rect = position.move(BORDER_HEIGHT,BORDER_HEIGHT)
                 self.text_rect.clip(position)
+                self.add_clicked_on_hook(print,("click on",text))
                 
                 # self.text_rect.scale_by_ip(RECT_WIDTH,RECT_HEIGHT-BORDER_HEIGHT*2)
         
@@ -28,6 +32,20 @@ class MenuItem:
                         self.text_rect
                         )
 
+        def add_clicked_on_hook(self, hook, *args):
+                self.hooks["mouse"].append([hook,args])
+        
+        def clicked_on(self):
+                if pygame.mouse.get_pressed()[0] and self.outer_rect.collidepoint(pygame.mouse.get_pos()):
+                        return True
+                else:
+                        return False
+
+        def process_hooks(self):
+                if self.clicked_on():
+                        for hook, args in self.hooks["mouse"]:
+                                
+                                hook(*(args[0]))
 
 
 
@@ -71,6 +89,8 @@ class MenuState(State):
 
         def tick(self, program):
                 self.draw(program)
+                for item in self.items:
+                        item.process_hooks()
                 # process events for buttons
                 pass
 
