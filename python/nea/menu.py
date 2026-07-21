@@ -1,77 +1,85 @@
 from state import State
 from constants import *
-import pygame
+from ui import Button
+import pygame, copy
 # import random
 
-def announce():
-        print()
+class MenuItem(Button):
+        def __init__(self, order_in_menu,*args, **kwargs):
+                rect = pygame.Rect(
+                                RECT_WIDTH/2,
+                                RECT_HEIGHT*(2+1.25*order_in_menu),
+                                RECT_WIDTH,
+                                RECT_HEIGHT
+                                )
+                # based of off https://stackoverflow.com/questions/12701206/ddg#12701228
+                super(MenuItem, self).__init__(*args,rect,**kwargs)
 
-class MenuItem:
-        def __init__(self,text, position: pygame.Rect):
-                self.text = text
-                self.hooks = {"mouse": []}
+
+class CategoryButton(MenuItem):
+        def __init__(self, cat_index, *args, **kwargs):
+                # based of off https://stackoverflow.com/questions/12701206/ddg#12701228
+                super(CategoryButton, self).__init__(*args,**kwargs)
                 
-                self.outer_rect = position
-                self.text_rect = position.move(BORDER_HEIGHT,BORDER_HEIGHT)
-                self.text_rect.clip(position)
-                self.add_clicked_on_hook(print,("click on",text))
+                self.index = cat_index
+                self.max_outer_rect = self.outer_rect
+                self.max_text_rect = self.text_rect
+                self.update_spacing(cat_index)
+
                 
-                # self.text_rect.scale_by_ip(RECT_WIDTH,RECT_HEIGHT-BORDER_HEIGHT*2)
-        
-        def draw(self,surface):
-                if self.outer_rect.collidepoint(pygame.mouse.get_pos()):
-                        self.colour = DARK_GREY
-                else:
-                        self.colour = LIGHT_GREY
-                pygame.draw.rect(surface,self.colour,self.outer_rect)
-                font = pygame.font.Font(None, FONT_HEIGHT)
-                text = font.render(self.text,True,(0,0,0))
+                
+        def update_spacing(self, cat_len):
+                # todo: fix horisontal spacing
+                if cat_len==0:
+                        cat_len=1
+                #cat_len +=1
+                self.outer_rect = copy.deepcopy(self.max_outer_rect)
+                self.text_rect = copy.deepcopy(self.max_text_rect)
 
-                surface.blit(
-                        text,
-                        self.text_rect
-                        )
+                self.outer_rect.width /= cat_len
+                #self.outer_rect.scale_by_ip(1/cat_len,1)
+                
+                
+                #self.outer_rect.x += self.outer_rect.width*(self.index)
+                delta_x = self.outer_rect.width*(self.index)
+                self.outer_rect.move_ip(delta_x,0)
+                self.text_rect.move_ip(delta_x,0)
+                
+                self.text_rect = self.text_rect.move(BORDER_HEIGHT,BORDER_HEIGHT)
+                self.text_rect.clip(self.outer_rect)
 
-        def add_clicked_on_hook(self, hook, *args):
-                self.hooks["mouse"].append([hook,args])
-        
-        def clicked_on(self):
-                if pygame.mouse.get_pressed()[0] and self.outer_rect.collidepoint(pygame.mouse.get_pos()):
-                        return True
-                else:
-                        return False
+                before = self.outer_rect.width
+                self.outer_rect.width/=1.01
+                after = self.outer_rect.width
+                
+                if not self.index==0:
+                        self.outer_rect.x -= (after-before)#*self.index
 
-        def process_hooks(self):
-                if self.clicked_on():
-                        for hook, args in self.hooks["mouse"]:
-                                
-                                hook(*(args[0]))
-
-
-
-        
-        
 
 class MenuState(State):
         def __init__(self,program):
                 self.items = []
-                self.register_menu_item("1")
-                self.register_menu_item("2")
-                self.register_menu_item("3")
+                self.categorys = []
+                self.register_menu_item("Start new simulation")
+                # todo: only display continue button if there is a saved simulation
                 
+                self.register_menu_item("Continue prior simulation")
+                
+                for i in range(6):
+                        self.register_category("Cat"+str(i+1))
+
                 # todo: load settings
                 pass
 
         def register_menu_item(self,text):
-                self.items.append(MenuItem(
-                        text,
-                        pygame.Rect(
-                                RECT_WIDTH/2,
-                                RECT_HEIGHT*(2+1.25*len(self.items)),
-                                RECT_WIDTH,
-                                RECT_HEIGHT
-                                )
-                                ))
+                self.items.append(MenuItem(len(self.items),text))
+        
+        def register_category(self,text):
+                self.categorys.append(CategoryButton(
+                        len(self.categorys),len(self.items),text
+                ))
+                for category in self.categorys:
+                        category.update_spacing(len(self.categorys))
 
         def draw(self, program):
                 # background
@@ -79,6 +87,10 @@ class MenuState(State):
 
                 for item,i in zip(self.items,range(len(self.items))):
                         item.draw(program.screen)
+
+                for category,i in zip(self.categorys,range(len(self.categorys))):
+                        category.update_spacing(len(self.categorys))
+                        category.draw(program.screen)
 
                 # todo: draw settings
 
@@ -89,8 +101,13 @@ class MenuState(State):
 
         def tick(self, program):
                 self.draw(program)
+
                 for item in self.items:
                         item.process_hooks()
+                
+                for category in self.categorys:
+                        category.process_hooks()
+
                 # process events for buttons
                 pass
 
