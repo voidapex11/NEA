@@ -65,7 +65,7 @@ class MenuState(State):
                 
                 self.register_menu_item("Continue prior simulation")
                 
-                for i in range(6):
+                for i in range(4):
                         self.register_category("Cat"+str(i+1))
 
                 # todo: load settings
