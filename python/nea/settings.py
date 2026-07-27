@@ -26,7 +26,32 @@ class SettingType(Enum):
         SETTING_FILE_PATH = 5
         
 
-
+class SettingManager:
+        def __init__(self,fp):
+                with open(fp,"r") as file:
+                        data = json.load(file)
+                        self.categorys = data["categorys"]
+                        self.settings = [Setting.from_raw_data(setting) for setting in data["settings"]]
+                        
+        
+        def save(self, fp):
+                data = {
+                        "categorys": self.categorys,
+                        "settings": self.settings
+                        }
+                for setting,i in zip(data["settings"],range(len(data["settings"]))):
+                        #import pdb;pdb.set_trace()
+                        data["settings"][i]=self.settings[i].to_raw_data()
+                
+                with open(fp,"w") as file:
+                        json.dump(data, file,indent=8)
+        
+        def get_all_from_category(self, cat):
+                return [
+                        self.settings[setting]
+                        for setting in self.settings
+                        if setting in self.categorys[cat]
+                        ]
 
 class Setting:
         """Reppresents a setting.
@@ -68,14 +93,22 @@ class Setting:
                 return self.data[0]
 
         def encode(self):
+                data = self.to_raw_data()
+                return json.dumps(data)
+        
+        def to_raw_data(self):
                 data = copy.deepcopy(self.__dict__)
                 data["type"] = self.type.name
-                return json.dumps(data)
+                return data
 
         def decode(raw):
                 decoded_json = json.loads(raw)
-                decoded_json["type"] = SettingType[decoded_json["type"]]
-                decoded = Setting(**decoded_json)
+                decoded = Setting.from_raw_data(decoded_json)
+                return decoded
+        
+        def from_raw_data(data):
+                data["type"] = SettingType[data["type"]]
+                decoded = Setting(**data)
                 return decoded
         
         def validate(self):

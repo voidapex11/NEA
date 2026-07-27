@@ -17,10 +17,15 @@ class MenuItem(Button):
 
 
 class CategoryButton(MenuItem):
-        def __init__(self, cat_index, *args, **kwargs):
+        def __init__(self, settings, cat_index, order_in_menu,text, *args, **kwargs):
                 # based of off https://stackoverflow.com/questions/12701206/ddg#12701228
-                super(CategoryButton, self).__init__(*args,**kwargs)
-                
+                super(CategoryButton, self).__init__(order_in_menu,text,*args,**kwargs)
+                if settings.get_all_from_category(text)!=[]:
+                        settings.categorys.setdefault(
+                                text,
+                                settings.get_all_from_category(text)
+                                )
+                self.settings = settings
                 self.index = cat_index
                 self.max_outer_rect = self.outer_rect
                 self.max_text_rect = self.text_rect
@@ -60,13 +65,20 @@ class MenuState(State):
         def __init__(self,program):
                 self.items = []
                 self.categorys = []
+                
+                self.settings = program.settings
                 self.register_menu_item("Start new simulation")
                 # todo: only display continue button if there is a saved simulation
                 
                 self.register_menu_item("Continue prior simulation")
                 
-                for i in range(4):
-                        self.register_category("Cat"+str(i+1))
+                for cat in self.settings.categorys:
+                        self.register_category(cat)
+                        self.categorys[-1].add_clicked_on_hook(
+                                self.update_selected_category,
+                                [len(self.categorys)]
+                                )
+                self.category = 0
 
                 # todo: load settings
                 pass
@@ -74,9 +86,12 @@ class MenuState(State):
         def register_menu_item(self,text):
                 self.items.append(MenuItem(len(self.items),text))
         
+        def update_selected_category(self, new_category):
+                self.category = new_category
+        
         def register_category(self,text):
                 self.categorys.append(CategoryButton(
-                        len(self.categorys),len(self.items),text
+                        self.settings, len(self.categorys),len(self.items),text
                 ))
                 for category in self.categorys:
                         category.update_spacing(len(self.categorys))
@@ -91,6 +106,8 @@ class MenuState(State):
                 for category,i in zip(self.categorys,range(len(self.categorys))):
                         category.update_spacing(len(self.categorys))
                         category.draw(program.screen)
+                
+                #import pdb;pdb.set_trace()
 
                 # todo: draw settings
 

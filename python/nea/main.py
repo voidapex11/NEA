@@ -1,8 +1,8 @@
 import pygame
 import nea
 from menu import MenuState
-
-
+from constants import SETTING_FILE_PATH
+from settings import SettingManager
 
 class Program:
     def __init__(self):
@@ -12,23 +12,29 @@ class Program:
 
         # Initialize Pygame
         pygame.init()
-
+        clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((1920/2, 1200/2))
         pygame.display.set_caption("Ant simulation")
 
-        self.state = MenuState(self)
+        self.settings = SettingManager(SETTING_FILE_PATH)
 
+        self.state = MenuState(self)
 
         # Game loop
         self.running = True
         while self.running:
-                for event in pygame.event.get():
-                        if event.type == pygame.QUIT:
-                                self.running = False
-                        else:
-                                self.state.tick(self)
-                pygame.display.update()
-
+                try:
+                        for event in pygame.event.get():
+                                if event.type == pygame.QUIT:
+                                        self.running = False
+                                        self.settings.save(SETTING_FILE_PATH)
+                                else:
+                                        self.state.tick(self)
+                        pygame.display.update()
+                        clock.tick(60)
+                except Exception as e:
+                        self.settings.save(SETTING_FILE_PATH)
+                        raise e
 
         # Quit Pygame
         pygame.quit()
