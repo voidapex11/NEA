@@ -1,7 +1,8 @@
 from state import State
 from constants import *
-from ui import Button
+from ui import Button, TextBox
 import pygame, copy
+from settings import SettingType
 # import random
 
 class MenuItem(Button):
@@ -65,6 +66,7 @@ class MenuState(State):
         def __init__(self,program):
                 self.items = []
                 self.categorys = []
+                self.current_category_settings = []
                 
                 self.settings = program.settings
                 self.register_menu_item("Start new simulation")
@@ -73,12 +75,13 @@ class MenuState(State):
                 self.register_menu_item("Continue prior simulation")
                 
                 for cat in self.settings.categorys:
+                        #import pdb; pdb.set_trace()
                         self.register_category(cat)
                         self.categorys[-1].add_clicked_on_hook(
                                 self.update_selected_category,
-                                [len(self.categorys)]
+                                [cat]
                                 )
-                self.category = 0
+                self.category = self.categorys[0].text
 
                 # todo: load settings
                 pass
@@ -88,6 +91,8 @@ class MenuState(State):
         
         def update_selected_category(self, new_category):
                 self.category = new_category
+                self.current_category_settings=[None for i in self.settings.get_all_from_category(new_category)]
+
         
         def register_category(self,text):
                 self.categorys.append(CategoryButton(
@@ -106,15 +111,35 @@ class MenuState(State):
                 for category,i in zip(self.categorys,range(len(self.categorys))):
                         category.update_spacing(len(self.categorys))
                         category.draw(program.screen)
-                
+                settings = self.settings.get_all_from_category(self.category)
+                for setting,i in zip(settings,range(len(settings))):
+                        self.draw_setting(program,setting,i+len(self.items)+1,i)
+
                 #import pdb;pdb.set_trace()
 
                 # todo: draw settings
 
-                pass
+                pygame.display.flip()
+
 
         def draw_item(item: MenuItem):
                 pass
+
+        def draw_setting(self,program,setting, order_in_menu, index):
+                if setting.type == SettingType.FILE_PATH:
+                        if self.current_category_settings[index]==None:
+                                rect = pygame.Rect(
+                                        RECT_WIDTH/2,
+                                        RECT_HEIGHT*(2+1.25*order_in_menu),
+                                        RECT_WIDTH,
+                                        RECT_HEIGHT
+                                        )
+                                box = TextBox(rect,program)
+                                self.current_category_settings[index] = box
+                self.current_category_settings[index].draw(program.screen)
+        
+        def tick_setting(self,index):
+                self.current_category_settings[index].tick()
 
         def tick(self, program):
                 self.draw(program)
@@ -124,6 +149,11 @@ class MenuState(State):
                 
                 for category in self.categorys:
                         category.process_hooks()
+                
+                for setting in self.current_category_settings:
+                        if setting!= None:
+                                setting.tick()
+
 
                 # process events for buttons
                 pass

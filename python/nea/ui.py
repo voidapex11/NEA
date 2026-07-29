@@ -11,7 +11,7 @@ class Button:
                 self.text_rect.clip(position)
 
                 # temporary demmo hook
-                self.add_clicked_on_hook(print,(f"click on \"{text}\"",))
+                # self.add_clicked_on_hook(print,(f"click on \"{text}\"",))
                 
                 # self.text_rect.scale_by_ip(RECT_WIDTH,RECT_HEIGHT-BORDER_HEIGHT*2)
         
@@ -45,8 +45,9 @@ class Button:
                                 hook(*(args[0]))
 
 class TextBox:
-        def __init__(self, position: pygame.Rect, text=""):
+        def __init__(self, position: pygame.Rect, program, text=""):
                 self.text = text
+                self.program = program
                 self.active = False
                 self.outer_rect = position
                 self.width = position.width
@@ -54,7 +55,7 @@ class TextBox:
                 self.text_rect.clip(position)
 
         def draw(self, surface):
-                if self.active:
+                if self.active or self.outer_rect.collidepoint(pygame.mouse.get_pos()):
                         self.colour = DARK_GREY
                 else:
                         self.colour = LIGHT_GREY
@@ -70,13 +71,13 @@ class TextBox:
                 self.outer_rect.w = max(self.width,text.get_width()+BORDER_HEIGHT)
 
         def tick(self):
-                for event in pygame.event.get():
-                        if event.type == pygame.MOUSEBUTTONDOWN:
-                                if self.outer_rect.collidepoint(event.pos):
-                                        self.active = True
-                                else:
-                                        self.active = False
-                        elif event.type == pygame.KEYDOWN:
+                if 0!=max(pygame.mouse.get_pressed()):
+                        if self.outer_rect.collidepoint(pygame.mouse.get_pos()):
+                                self.active = True
+                        else:
+                                self.active = False
+                for event in self.program.events:        
+                        if event.type == pygame.KEYDOWN:
                                 if event.key == pygame.K_BACKSPACE:
                                         self.text = self.text[:-1]
                                 else:

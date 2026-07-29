@@ -24,12 +24,13 @@ class Program:
         self.running = True
         while self.running:
                 try:
-                        for event in pygame.event.get():
+                        self.events = pygame.event.get()
+                        self.state.tick(self)
+                        for event in self.events:
                                 if event.type == pygame.QUIT:
                                         self.running = False
                                         self.settings.save(SETTING_FILE_PATH)
-                                else:
-                                        self.state.tick(self)
+                        
                         pygame.display.update()
                         clock.tick(60)
                 except Exception as e:

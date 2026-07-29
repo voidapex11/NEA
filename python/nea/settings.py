@@ -31,17 +31,25 @@ class SettingManager:
                 with open(fp,"r") as file:
                         data = json.load(file)
                         self.categorys = data["categorys"]
+                        for cat in self.categorys:
+                                for setting in range(len(self.categorys[cat])):
+                                        self.categorys[cat][setting]=Setting.from_raw_data(self.categorys[cat][setting])
                         self.settings = [Setting.from_raw_data(setting) for setting in data["settings"]]
                         
         
         def save(self, fp):
                 data = {
-                        "categorys": self.categorys,
-                        "settings": self.settings
+                        "categorys": copy.deepcopy(self.categorys),
+                        "settings": copy.deepcopy(self.settings)
                         }
                 for setting,i in zip(data["settings"],range(len(data["settings"]))):
-                        #import pdb;pdb.set_trace()
+                        
                         data["settings"][i]=self.settings[i].to_raw_data()
+                        
+
+                for cat in data["categorys"]:
+                        for setting,i in zip(data["categorys"][cat],range(len(data["categorys"][cat]))):
+                                data["categorys"][cat][i]=self.categorys[cat][i].to_raw_data()
                 
                 with open(fp,"w") as file:
                         json.dump(data, file,indent=8)
@@ -49,8 +57,8 @@ class SettingManager:
         def get_all_from_category(self, cat):
                 return [
                         self.settings[setting]
-                        for setting in self.settings
-                        if setting in self.categorys[cat]
+                        for setting in range(len(self.settings))
+                        if self.settings[setting] in self.categorys[cat]
                         ]
 
 class Setting:
