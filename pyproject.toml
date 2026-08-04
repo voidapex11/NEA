@@ -25,3 +25,12 @@ exclude = [
     "**/*.pyc",
     "**/*.pyo"
 ]
+
+[tool.ruff]
+indent-width=8
+line-length=69
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.1",
+]
