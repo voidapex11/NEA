@@ -102,7 +102,6 @@ class MenuState(State):
                 self.register_menu_item("Continue prior simulation")
 
                 for cat in self.settings.categorys:
-                        # import pdb; pdb.set_trace()
                         self.register_category(cat)
                         self.categorys[-1].add_clicked_on_hook(
                                 self.update_selected_category, [cat]
@@ -133,7 +132,7 @@ class MenuState(State):
                         )
                 )
                 for category in self.categorys:
-                        category.update_spacing(len(self.categorys))
+                        categorypygame.display.flip().update_spacing(len(self.categorys))
 
         def draw(self, program):
                 # background
@@ -161,10 +160,6 @@ class MenuState(State):
                                 i + len(self.items) + 1,
                                 i,
                         )
-
-                # import pdb;pdb.set_trace()
-
-                # todo: draw settings
 
                 pygame.display.flip()
 

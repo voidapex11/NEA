@@ -1,5 +1,5 @@
 import pygame
-from constants import SETTING_FILE_PATH
+from constants import SCREEN_DIMENTIONS, SETTING_FILE_PATH
 from menu import MenuState
 from settings import SettingManager
 
@@ -24,7 +24,7 @@ class Program:
                 pygame.init()
                 clock = pygame.time.Clock()
                 self.screen = pygame.display.set_mode(
-                        (1920 / 2, 1200 / 2)
+                        SCREEN_DIMENTIONS
                 )
                 pygame.display.set_caption("Ant simulation")
 
