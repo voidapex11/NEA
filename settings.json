@@ -1,0 +1,24 @@
+{
+        "categorys": {
+                "general": [],
+                "test": [
+                        {
+                                "type": "FILE_PATH",
+                                "data": [
+                                        "~/Downloads/test.txt"
+                                ]
+                        }
+                ],
+                "stats": [],
+                "msc": [],
+                "binds": []
+        },
+        "settings": [
+                {
+                        "type": "FILE_PATH",
+                        "data": [
+                                "~/Downloads/test.txt"
+                        ]
+                }
+        ]
+}

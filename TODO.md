@@ -1,0 +1,7 @@
+- make buttons call function when clicked
+- autoload settings
+        - render funciton for each type of setting
+        - utilize class hierarchy for settings autobuilding
+        - default settings
+- text box for input
+- number input box from text input box

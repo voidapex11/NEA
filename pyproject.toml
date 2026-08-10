@@ -11,6 +11,9 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dynamic = ["version"]
+dependencies = [
+    "pygame>=2.6.1",
+]
 [project.optional-dependencies]
 tests = [
     "pytest",
@@ -21,4 +24,13 @@ exclude = [
     "**/__pycache__",
     "**/*.pyc",
     "**/*.pyo"
+]
+
+[tool.ruff]
+indent-width=8
+line-length=69
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.1",
 ]
