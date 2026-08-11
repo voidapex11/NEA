@@ -132,7 +132,7 @@ class MenuState(State):
                         )
                 )
                 for category in self.categorys:
-                        categorypygame.display.flip().update_spacing(len(self.categorys))
+                        category.update_spacing(len(self.categorys))
 
         def draw(self, program):
                 # background
