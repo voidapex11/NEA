@@ -1,9 +1,19 @@
 {
         "categorys": {
-                "general": [],
+                "general": [
+                        {
+                                "setting_type": "LOWER_BOUND_INT",
+                                "name": "radius",
+                                "data": [
+                                        2,
+                                        0.0
+                                ]
+                        }
+                ],
                 "test": [
                         {
-                                "type": "FILE_PATH",
+                                "setting_type": "FILE_PATH",
+                                "name": "testing",
                                 "data": [
                                         "~/Downloads/test.txt"
                                 ]
@@ -12,13 +22,5 @@
                 "stats": [],
                 "msc": [],
                 "binds": []
-        },
-        "settings": [
-                {
-                        "type": "FILE_PATH",
-                        "data": [
-                                "~/Downloads/test.txt"
-                        ]
-                }
-        ]
+        }
 }

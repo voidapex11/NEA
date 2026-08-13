@@ -48,7 +48,7 @@ class Program:
                                 self.check_if_quit()
 
                                 pygame.display.update()
-                                self.clock.tick(60)
+                                #self.clock.tick(60)
                         except:
                                 self.settings.save(SETTING_FILE_PATH)
                                 raise

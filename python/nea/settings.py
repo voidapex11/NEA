@@ -38,6 +38,7 @@ class SettingManager:
                 with open(fp, "r") as file:
                         data = json.load(file)
                         self.categorys = data["categorys"]
+                        self.settings = []
                         for cat in self.categorys:
                                 for setting in range(
                                         len(self.categorys[cat])
@@ -49,23 +50,16 @@ class SettingManager:
                                                         setting
                                                 ]
                                         )
-                        self.settings = [
-                                Setting.from_raw_data(setting)
-                                for setting in data["settings"]
-                        ]
+                                        self.settings.append(
+                                                self.categorys[cat][
+                                                        setting
+                                                ]
+                                        )
 
         def save(self, fp):
                 data = {
                         "categorys": copy.deepcopy(self.categorys),
-                        "settings": copy.deepcopy(self.settings),
                 }
-                for setting, i in zip(
-                        data["settings"],
-                        range(len(data["settings"])),
-                ):
-                        data["settings"][i] = self.settings[
-                                i
-                        ].to_raw_data()
 
                 for cat in data["categorys"]:
                         for setting, i in zip(
@@ -81,6 +75,13 @@ class SettingManager:
                 with open(fp, "w") as file:
                         json.dump(data, file, indent=8)
 
+        def get_by_name(self, name):
+                return next(
+                        self.settings[setting]
+                        for setting in range(len(self.settings))
+                        if self.settings[setting].name == name
+                ).get_value()
+
         def get_all_from_category(self, cat):
                 return [
                         self.settings[setting]
@@ -93,33 +94,39 @@ class SettingManager:
 class Setting:
         """Reppresents a setting, providing encoding, and validation
         by setting type.
-        >>> fp = Setting(SettingType.FILE_PATH,"~/Downloads/test.txt")
+        >>> fp = Setting("demo",SettingType.FILE_PATH,"~/Downloads/test.txt")
         >>> fp.encode()
-        '{"type": "FILE_PATH", "data": ["~/Downloads/test.txt"]}'
+        '{"setting_type": "FILE_PATH", "name": "demo", "data": ["~/Downloads/test.txt"]}'
         >>> fp.validate()
         True
 
         valid case
-        >>> age = Setting(SettingType.LOWER_BOUND_INT, 2, 0)
+        >>> age = Setting("demo",SettingType.LOWER_BOUND_INT, 2, 0)
         >>> age.validate()
         True
 
         invalid case of negative age
-        >>> invalid_age = Setting(SettingType.LOWER_BOUND_INT, -2, 0)
+        >>> invalid_age = Setting("demo",SettingType.LOWER_BOUND_INT, -2, 0)
         >>> invalid_age.validate()
         False
 
 
-        >>> before = Setting(SettingType.LOWER_BOUND_INT, 2, 0)
-        >>> after = Setting.decode(before.encode())
-        >>> before == after
+        >>> before = Setting("demo",SettingType.LOWER_BOUND_INT, 2, 0)
+        >>> before == Setting.decode(before.encode())
         True
         """
 
-        def __init__(self, type: SettingType, *args, data=None):
+        def __init__(
+                self,
+                name,
+                setting_type: SettingType,
+                *args,
+                data=None,
+        ):
                 if data is None:
                         data = []
-                self.type = type
+                self.setting_type = setting_type
+                self.name = name
                 self.data = list(args) + data
 
         def __eq__(self, other):
@@ -129,8 +136,9 @@ class Setting:
                         return NotImplemented
 
                 return (
-                        self.type == other.type
+                        self.setting_type == other.setting_type
                         and self.data == other.data
+                        and self.name == other.name
                 )
 
         def get_value(self):
@@ -142,7 +150,7 @@ class Setting:
 
         def to_raw_data(self):
                 data = copy.deepcopy(self.__dict__)
-                data["type"] = self.type.name
+                data["setting_type"] = self.setting_type.name
                 return data
 
         def decode(raw):
@@ -151,13 +159,15 @@ class Setting:
                 return decoded
 
         def from_raw_data(data):
-                data["type"] = SettingType[data["type"]]
+                data["setting_type"] = SettingType[
+                        data["setting_type"]
+                ]
                 decoded = Setting(**data)
                 return decoded
 
         def validate(self):
                 """calls the setting type spesific validator function"""
-                return validations[self.type](*self.data)
+                return validations[self.setting_type](*self.data)
 
         def validate_bound_int(data: int, bound, upper_bound: bool):
                 if upper_bound:
