@@ -10,6 +10,19 @@ def draw_rect(surface, colour, rect):
         pygame.draw.rect(surface, colour, rect)
 
 
+def points_to_rect(point_a, point_b):
+        start = (
+                min(point_a[0], point_b[0]),
+                min(point_a[1], point_b[1]),
+        )
+        end = (
+                max(point_a[0], point_b[0]),
+                max(point_a[1], point_b[1]),
+        )
+        dimentions = (end[0] - start[0], end[1] - start[1])
+        return pygame.Rect(start, dimentions)
+
+
 class Wall:
         def __init__(self, *args):
                 if len(args) == 1:
@@ -63,39 +76,40 @@ class RenderState(State):
                         if self.tool == 1:
                                 self.tick_draw_tool(program)
                         elif self.tool == 2:
-                                self.tick_e
+                                self.tick_erase_tool(program)
                                 rase_tool(program)
 
         def get_affected_by_tool(self, program):
-                x,y = self.get_mouse_grid_ref()
+                x, y = self.get_mouse_grid_ref()
                 radius = program.settings.get_by_name("radius")
-                x_list = range(
-                        max(x - radius//2, 0), min(x + radius//2, WIDTH)
-                )
-                y_list = range(
-                        max(y - radius//2, 0), min(y + radius//2, HEIGHT)
-                )
-                return itertools.product(x_list,y_list)
+                lower_x = max(x - radius // 2, 0)
+                upper_x = min(x + radius // 2, WIDTH)
+                lower_y = max(y - radius // 2, 0)
+                upper_y = min(y + radius // 2, HEIGHT)
 
+                x_list = range(lower_x, upper_x)
+                y_list = range(
+                        lower_y,
+                        upper_y,
+                )
+                return itertools.product(x_list, y_list)
 
         def get_mouse_grid_ref(self):
                 x, y = pygame.mouse.get_pos()
                 box_x = round(x / SCREEN_DIMENTIONS[0] * WIDTH)
                 box_y = round(y / SCREEN_DIMENTIONS[1] * HEIGHT)
-                return box_x,box_y
+                return box_x, box_y
 
         def tick_draw_tool(self, program):
-                for x,y in self.get_affected_by_tool(program):
-
-                        #box_x, box_y = self.get_mouse_grid_ref()
+                for x, y in self.get_affected_by_tool(program):
+                        # box_x, box_y = self.get_mouse_grid_ref()
                         wall = Wall(x, y)
                         if wall not in program.walls:
                                 program.walls.append(wall)
 
         def tick_erase_tool(self, program):
-                for x,y in self.get_affected_by_tool(program):
-
-                        #box_x, box_y = self.get_mouse_grid_ref()
+                for x, y in self.get_affected_by_tool(program):
+                        # box_x, box_y = self.get_mouse_grid_ref()
                         wall = Wall(x, y)
                         if wall in program.walls:
                                 program.walls.remove(wall)
@@ -110,4 +124,44 @@ class RenderState(State):
                 for ant in program.ants:
                         ant.draw(program.screen)
 
+                self.draw_preview(program)
+
                 pygame.display.flip()
+
+        def draw_preview(self, program):
+                surface = program.screen
+                x, y = self.get_mouse_grid_ref()
+                radius = program.settings.get_by_name("radius")
+                screen_width, screen_height = SCREEN_DIMENTIONS
+                width = screen_width / WIDTH
+                height = screen_height / HEIGHT
+                lower_x = max(x - radius // 2, 0) * width
+                upper_x = min(x + radius // 2, WIDTH) * width
+                lower_y = max(y - radius // 2, 0) * height
+                upper_y = min(y + radius // 2, HEIGHT) * height
+
+                points = (
+                        (lower_x, lower_y),
+                        (lower_x, upper_y),
+                        (upper_x, upper_y),
+                        (upper_x, lower_y),
+                )
+
+                point_pairs = (
+                        (points[0], points[1]),
+                        (points[1], points[2]),
+                        (points[2], points[3]),
+                        (points[3], points[0]),
+                )
+
+                for point_pair in point_pairs:
+                        #point_pair = point_pairs[0]
+                        rect = points_to_rect(
+                                point_pair[0], point_pair[1]
+                        )
+                        rect.x -= SMALL
+                        rect.y -= SMALL
+                        rect.w += SMALL * 2
+                        rect.h += SMALL * 2
+                        #print(rect)
+                        pygame.draw.rect(surface, BLACK, rect)
