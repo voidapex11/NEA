@@ -1,6 +1,7 @@
 """description"""
 
 import itertools
+
 import pygame
 from constants import *
 from state import State
@@ -21,6 +22,24 @@ def points_to_rect(point_a, point_b):
         )
         dimentions = (end[0] - start[0], end[1] - start[1])
         return pygame.Rect(start, dimentions)
+
+
+class Ant:
+        def __init__(self, x, y):
+                self.x = x
+                self.y = y
+        
+        def draw(self, surface):
+                screen_width, screen_height = SCREEN_DIMENTIONS
+                width = screen_width / WIDTH
+                height = screen_height / HEIGHT
+                rect = pygame.Rect(
+                        width * self.x + SMALL,
+                        height * self.y + SMALL,
+                        width - 3 * SMALL,
+                        height - 3 * SMALL,
+                )
+                draw_rect(surface, BROWN, rect)
 
 
 class Wall:
@@ -155,7 +174,7 @@ class RenderState(State):
                 )
 
                 for point_pair in point_pairs:
-                        #point_pair = point_pairs[0]
+                        # point_pair = point_pairs[0]
                         rect = points_to_rect(
                                 point_pair[0], point_pair[1]
                         )
@@ -163,5 +182,5 @@ class RenderState(State):
                         rect.y -= SMALL
                         rect.w += SMALL * 2
                         rect.h += SMALL * 2
-                        #print(rect)
+                        # print(rect)
                         pygame.draw.rect(surface, BLACK, rect)

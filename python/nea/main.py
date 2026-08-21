@@ -1,7 +1,7 @@
 import pygame
 from constants import SCREEN_DIMENTIONS, SETTING_FILE_PATH
 from menu import MenuState
-from render import RenderState
+from render import RenderState, Ant
 from settings import SettingManager
 
 
@@ -14,6 +14,7 @@ class Program:
                 # temp:
                 self.walls = [(0,0),(0,2),(1,2),(3,2),(5,2),(9,2)]
                 self.ants = []
+                self.ants.append(Ant(10,10))
                 
                 # Initialize Pygame
                 pygame.init()

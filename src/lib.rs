@@ -1,4 +1,5 @@
 use pyo3::prelude::*;
+mod ant;
 
 /// A Python module implemented in Rust.
 #[pymodule]
@@ -10,4 +11,7 @@ mod nea {
     fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
         Ok((a + b).to_string())
     }
+
+    #[pymodule_export]
+    use super::ant::Ant;
 }
