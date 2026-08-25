@@ -5,7 +5,7 @@ import itertools
 import pygame
 from constants import *
 from state import State
-
+import math
 
 def draw_rect(surface, colour, rect):
         pygame.draw.rect(surface, colour, rect)
@@ -28,7 +28,7 @@ class Ant:
         def __init__(self, x, y):
                 self.x = x
                 self.y = y
-        
+
         def draw(self, surface):
                 screen_width, screen_height = SCREEN_DIMENTIONS
                 width = screen_width / WIDTH
@@ -86,6 +86,9 @@ class RenderState(State):
 
         def tick(self, program):
                 self.draw(program)
+                for event in program.events:
+                        self.process_event(program, event)
+
                 if self.tool == 0:
                         if pygame.mouse.get_pressed()[0]:
                                 self.tick_draw_tool(program)
@@ -96,15 +99,41 @@ class RenderState(State):
                                 self.tick_draw_tool(program)
                         elif self.tool == 2:
                                 self.tick_erase_tool(program)
-                                rase_tool(program)
+                        elif self.tool == 3:
+                                pass
+
+        def process_event(self, program, event):
+                if event.type == pygame.MOUSEWHEEL:
+                        self.tool = max(
+                                min(3, self.tool - event.y), 0
+                        )
+                elif event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_EQUALS:
+                                program.settings.set_by_name(
+                                        "radius",
+                                        program.settings.get_by_name(
+                                                "radius"
+                                        )
+                                        + 1,
+                                )
+                        elif event.key == pygame.K_MINUS:
+                                program.settings.set_by_name(
+                                        "radius",
+                                        program.settings.get_by_name(
+                                                "radius"
+                                        )
+                                        - 1,
+                                )
 
         def get_affected_by_tool(self, program):
                 x, y = self.get_mouse_grid_ref()
                 radius = program.settings.get_by_name("radius")
-                lower_x = max(x - radius // 2, 0)
-                upper_x = min(x + radius // 2, WIDTH)
-                lower_y = max(y - radius // 2, 0)
-                upper_y = min(y + radius // 2, HEIGHT)
+                # - r/2
+                # plus r/2
+                lower_x = x-math.floor(radius/2)
+                upper_x = x+ math.ceil(radius/2)
+                lower_y = y-math.floor(radius/2)
+                upper_y = y+math.ceil(radius/2)
 
                 x_list = range(lower_x, upper_x)
                 y_list = range(
@@ -133,6 +162,12 @@ class RenderState(State):
                         if wall in program.walls:
                                 program.walls.remove(wall)
 
+        def tick_draw_ant_tool(self, program):
+                x, y = self.get_mouse_grid_ref()
+                ant = Ant(x, y)
+                if ant not in program.ants:
+                        program.ants.append(ant)
+
         def draw(self, program):
                 # background
                 program.screen.fill((255, 255, 255))
@@ -150,14 +185,19 @@ class RenderState(State):
         def draw_preview(self, program):
                 surface = program.screen
                 x, y = self.get_mouse_grid_ref()
+
                 radius = program.settings.get_by_name("radius")
+
+                if self.tool == 3:
+                        radius = 1
+
                 screen_width, screen_height = SCREEN_DIMENTIONS
                 width = screen_width / WIDTH
                 height = screen_height / HEIGHT
-                lower_x = max(x - radius // 2, 0) * width
-                upper_x = min(x + radius // 2, WIDTH) * width
-                lower_y = max(y - radius // 2, 0) * height
-                upper_y = min(y + radius // 2, HEIGHT) * height
+                lower_x = max(x-math.floor(radius/2), 0) * width
+                upper_x = min(x+ math.ceil(radius/2), WIDTH) * width
+                lower_y = max(y-math.floor(radius/2), 0) * height
+                upper_y = min(y+math.ceil(radius/2), HEIGHT) * height
 
                 points = (
                         (lower_x, lower_y),
@@ -182,5 +222,4 @@ class RenderState(State):
                         rect.y -= SMALL
                         rect.w += SMALL * 2
                         rect.h += SMALL * 2
-                        # print(rect)
                         pygame.draw.rect(surface, BLACK, rect)

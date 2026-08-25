@@ -5,7 +5,7 @@
                                 "setting_type": "LOWER_BOUND_INT",
                                 "name": "radius",
                                 "data": [
-                                        2,
+                                        3,
                                         0.0
                                 ]
                         }

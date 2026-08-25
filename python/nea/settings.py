@@ -82,6 +82,12 @@ class SettingManager:
                         if self.settings[setting].name == name
                 ).get_value()
 
+        def set_by_name(self, name, val):
+                for i in range(len(self.settings)):
+                        if self.settings[i].name == name:
+                                self.settings[i].set_value(val)
+                                break
+
         def get_all_from_category(self, cat):
                 return [
                         self.settings[setting]
@@ -143,6 +149,13 @@ class Setting:
 
         def get_value(self):
                 return self.data[0]
+
+        def set_value(self, value):
+                old = self.get_value()
+
+                self.data[0] = value
+                if not self.validate():
+                        self.data[0] = old
 
         def encode(self):
                 data = self.to_raw_data()
