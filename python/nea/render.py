@@ -1,11 +1,12 @@
 """description"""
 
 import itertools
+import math
 
 import pygame
 from constants import *
 from state import State
-import math
+
 
 def draw_rect(surface, colour, rect):
         pygame.draw.rect(surface, colour, rect)
@@ -41,6 +42,9 @@ class Ant:
                 )
                 draw_rect(surface, BROWN, rect)
 
+        def __eq__(self, other):
+                return (self.x == other.x) and (self.y == other.y)
+
 
 class Wall:
         def __init__(self, *args):
@@ -71,7 +75,6 @@ class Wall:
                 return (self.x, self.y)
 
         def __eq__(self, other):
-
                 return (self.x == other.x) and (self.y == other.y)
 
 
@@ -94,13 +97,17 @@ class RenderState(State):
                                 self.tick_draw_tool(program)
                         elif pygame.mouse.get_pressed()[2]:
                                 self.tick_erase_tool(program)
+                elif self.tool == 3:
+                        if pygame.mouse.get_pressed()[0]:
+                                self.tick_draw_ant_tool(program)
+                        elif pygame.mouse.get_pressed()[2]:
+                                self.tick_erase_ant_tool(program)
+
                 if pygame.mouse.get_pressed()[0]:
                         if self.tool == 1:
                                 self.tick_draw_tool(program)
                         elif self.tool == 2:
                                 self.tick_erase_tool(program)
-                        elif self.tool == 3:
-                                pass
 
         def process_event(self, program, event):
                 if event.type == pygame.MOUSEWHEEL:
@@ -128,12 +135,10 @@ class RenderState(State):
         def get_affected_by_tool(self, program):
                 x, y = self.get_mouse_grid_ref()
                 radius = program.settings.get_by_name("radius")
-                # - r/2
-                # plus r/2
-                lower_x = x-math.floor(radius/2)
-                upper_x = x+ math.ceil(radius/2)
-                lower_y = y-math.floor(radius/2)
-                upper_y = y+math.ceil(radius/2)
+                lower_x = x - math.floor(radius / 2)
+                upper_x = x + math.ceil(radius / 2)
+                lower_y = y - math.floor(radius / 2)
+                upper_y = y + math.ceil(radius / 2)
 
                 x_list = range(lower_x, upper_x)
                 y_list = range(
@@ -150,14 +155,12 @@ class RenderState(State):
 
         def tick_draw_tool(self, program):
                 for x, y in self.get_affected_by_tool(program):
-                        # box_x, box_y = self.get_mouse_grid_ref()
                         wall = Wall(x, y)
                         if wall not in program.walls:
                                 program.walls.append(wall)
 
         def tick_erase_tool(self, program):
                 for x, y in self.get_affected_by_tool(program):
-                        # box_x, box_y = self.get_mouse_grid_ref()
                         wall = Wall(x, y)
                         if wall in program.walls:
                                 program.walls.remove(wall)
@@ -167,6 +170,12 @@ class RenderState(State):
                 ant = Ant(x, y)
                 if ant not in program.ants:
                         program.ants.append(ant)
+
+        def tick_erase_ant_tool(self, program):
+                x, y = self.get_mouse_grid_ref()
+                ant = Ant(x, y)
+                if ant in program.ants:
+                        program.ants.remove(ant)
 
         def draw(self, program):
                 # background
@@ -194,10 +203,15 @@ class RenderState(State):
                 screen_width, screen_height = SCREEN_DIMENTIONS
                 width = screen_width / WIDTH
                 height = screen_height / HEIGHT
-                lower_x = max(x-math.floor(radius/2), 0) * width
-                upper_x = min(x+ math.ceil(radius/2), WIDTH) * width
-                lower_y = max(y-math.floor(radius/2), 0) * height
-                upper_y = min(y+math.ceil(radius/2), HEIGHT) * height
+                lower_x = max(x - math.floor(radius / 2), 0) * width
+                upper_x = (
+                        min(x + math.ceil(radius / 2), WIDTH) * width
+                )
+                lower_y = max(y - math.floor(radius / 2), 0) * height
+                upper_y = (
+                        min(y + math.ceil(radius / 2), HEIGHT)
+                        * height
+                )
 
                 points = (
                         (lower_x, lower_y),
@@ -214,7 +228,6 @@ class RenderState(State):
                 )
 
                 for point_pair in point_pairs:
-                        # point_pair = point_pairs[0]
                         rect = points_to_rect(
                                 point_pair[0], point_pair[1]
                         )

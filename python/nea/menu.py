@@ -83,7 +83,7 @@ class CategoryButton(MenuItem):
                 if self.index != 0:
                         self.outer_rect.x -= (
                                 after - before
-                        )  # *self.index
+                        )
 
 
 class MenuState(State):
@@ -108,7 +108,6 @@ class MenuState(State):
                         )
                 self.category = self.categorys[0].text
 
-                # todo: load settings
 
         def register_menu_item(self, text):
                 self.items.append(MenuItem(len(self.items), text))
