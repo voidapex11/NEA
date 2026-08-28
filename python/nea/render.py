@@ -97,12 +97,12 @@ class RenderState(State):
                                 self.tick_draw_tool(program)
                         elif pygame.mouse.get_pressed()[2]:
                                 self.tick_erase_tool(program)
-                elif self.tool == 3:
+                elif self.tool == 1:
                         if pygame.mouse.get_pressed()[0]:
                                 self.tick_draw_ant_tool(program)
                         elif pygame.mouse.get_pressed()[2]:
                                 self.tick_erase_ant_tool(program)
-
+                return
                 if pygame.mouse.get_pressed()[0]:
                         if self.tool == 1:
                                 self.tick_draw_tool(program)
@@ -112,7 +112,7 @@ class RenderState(State):
         def process_event(self, program, event):
                 if event.type == pygame.MOUSEWHEEL:
                         self.tool = max(
-                                min(3, self.tool - event.y), 0
+                                min(1, self.tool - event.y), 0
                         )
                 elif event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_EQUALS:
@@ -197,7 +197,7 @@ class RenderState(State):
 
                 radius = program.settings.get_by_name("radius")
 
-                if self.tool == 3:
+                if self.tool == 1:
                         radius = 1
 
                 screen_width, screen_height = SCREEN_DIMENTIONS
