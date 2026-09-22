@@ -7,6 +7,8 @@ import pygame
 from constants import *
 from state import State
 
+from nea import Ant as RustAnt
+
 
 def draw_rect(surface, colour, rect):
         pygame.draw.rect(surface, colour, rect)
@@ -25,7 +27,7 @@ def points_to_rect(point_a, point_b):
         return pygame.Rect(start, dimentions)
 
 
-class Ant:
+class Ant(RustAnt):
         def __init__(self, x, y):
                 self.x = x
                 self.y = y
