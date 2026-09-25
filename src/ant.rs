@@ -1,12 +1,12 @@
 use pyo3::prelude::*;
 
 #[pyclass]
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct Ant {
         pub x: f64,
         pub y: f64,
         pub vx: f64,
-        pub vy: f64
+        pub vy: f64,
 }
 
 #[pymethods]

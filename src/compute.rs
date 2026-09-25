@@ -72,9 +72,16 @@ fn compute_ant_directions(
                                 |pair_w_sum| {
                                         let (pair, sum) = pair_w_sum;
                                         let (ant, p) = pair;
+                                        let dy = p[1]-ant.y;
+                                        let dx = p[0]-ant.x;
+                                        let mut angle:f64 = 0.0;
+                                        if dy !=0.0 {
+                                                angle = (dy/dx).atan();   
+                                        }
+                                        
                                         (
-                                                (p[0]-ant.x).signum(),
-                                                (p[1]-ant.y).signum(),
+                                                angle.cos(),
+                                                angle.sin(),
                                                 p[2] / sum * old[p[0].round()
                                                 as usize]
                                                 [p[1].round()
@@ -90,13 +97,12 @@ fn compute_ant_directions(
                         let (dx, dy, magnitude) = triplet;
                         *sx.borrow_mut() += dx * magnitude;
                         *sy.borrow_mut() += dy * magnitude;
-
                 });
+
                 let angle = (*sy.borrow() / *sx.borrow()).atan();
                 (angle.cos(), angle.sin())
         });
-        return ants
-                .iter_mut()
+        ants.iter_mut()
                 .zip(velocity_vectors)
                 .map(|pair| {
                         let (ant, (vx, vy)) = pair;
@@ -109,7 +115,7 @@ fn compute_ant_directions(
                         }
                         ant.clone()
                 })
-                .collect::<Vec<ant::Ant>>();
+                .collect::<Vec<ant::Ant>>()
 
         // work out sum
         // divide by sum
@@ -118,6 +124,8 @@ fn compute_ant_directions(
 
 #[cfg(test)]
 mod tests {
+        use core::f32;
+
         use super::*;
         use rand;
 
@@ -138,15 +146,25 @@ mod tests {
 
         #[test]
         fn compute_ant_directions_valid() {
+                let mut old = [[0.0; 96]; 60];
+                old[40 + 1][40 + 1] = 100.0;
+                //old[40][41] = 500.0;
                 let result = compute_ant_directions(
                         vec![ant::Ant {
-                                x: 20.,
-                                y: 20.,
+                                x: 40.,
+                                y: 40.,
                                 vx: 0.,
                                 vy: 0.,
                         }],
-                        rand::random(),
+                        old,
                 );
-                assert!(true);
+                assert!(f64::abs(
+                        result[0].vx
+                                - std::f64::consts::SQRT_2 / 2.0
+                ) < 0.01);
+                assert!(f64::abs(
+                        result[0].vy
+                                - std::f64::consts::SQRT_2 / 2.0
+                ) < 0.01);
         }
 }
