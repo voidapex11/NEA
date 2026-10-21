@@ -1,18 +1,38 @@
 use crate::ant;
 use crate::constants;
 use std::cell::RefCell;
-use std::cmp::min;
 use std::rc::Rc;
 
 //use pyo3::prelude::*;
 
 /// rounds off floating point numbers to the nearest 1/2^16
 /// to prevent floating point errors in tests
-fn round_float(x:f64) -> f64 {
+fn round_float(x: f64) -> f64 {
         let factor = 2.0_f64.powi(16);
-        (x* factor).round() / factor
+        (x * factor).round() / factor
 }
 
+fn place_pheremones(
+        ants: Vec<ant::Ant>,
+        old: [[f64; constants::DIMENTIONS[0] as usize];
+                constants::DIMENTIONS[1] as usize],
+) -> [[f64; constants::DIMENTIONS[0] as usize];
+           constants::DIMENTIONS[1] as usize] {
+        let new = Rc::new(RefCell::new(old.clone()));
+        ants.iter().for_each(|ant| {
+                place_pheremone(ant, new.clone());
+        });
+        return (*new).clone().into_inner();
+}
+
+fn place_pheremone(
+        ant: &ant::Ant,
+        mut new: Rc<RefCell<[[f64; constants::DIMENTIONS[0] as usize];
+                constants::DIMENTIONS[1] as usize]>>,
+) {
+        (*new.borrow_mut())[ant.x.floor() as usize][ant.y.floor() as usize] +=
+                ant.trail_conc;
+}
 
 /// validate if a point is out of bounds
 fn is_oob(x: f64, y: f64) -> bool {
@@ -133,7 +153,7 @@ fn move_ant_by_n(
                 constants::DIMENTIONS[1] as usize],
         mut n: f64,
 ) -> ant::Ant {
-        if n<0.0 {
+        if n < 0.0 {
                 panic!("n < 0");
         }
         while 0.9 < n {
@@ -187,7 +207,7 @@ fn move_ant_by_n(
         if !y_ok && round_float(tx) >= round_float(ty) {
                 ant.vy *= -1.0;
         };
-        if remaining_n.abs()> 2.0_f64.powi(-16) {
+        if remaining_n.abs() > 2.0_f64.powi(-16) {
                 ant = move_ant_by_n(
                         dbg!(ant),
                         walls,
@@ -217,6 +237,21 @@ mod tests {
         use super::*;
 
         #[test]
+        fn test_place_pheremone() {
+                let old = [[0.0; 96]; 60];
+                let mut new = Rc::new(RefCell::new(old.clone()));
+                let ant = ant::Ant {
+                        x: 1.,
+                        y: 1.,
+                        vx: 0.,
+                        vy: 0.,
+                        trail_conc: 1.
+                };
+                place_pheremone(&ant, new.clone());
+                assert_eq!(new.borrow()[1][1],1.0)
+        }
+
+        #[test]
         fn test_not_oob() {
                 assert_eq!(is_oob(1., 2.), false);
         }
@@ -242,6 +277,7 @@ mod tests {
                                 y: 40.,
                                 vx: 0.,
                                 vy: 0.,
+                                trail_conc: 1.
                         }],
                         old,
                 );
@@ -264,6 +300,7 @@ mod tests {
                                 y: 0.0,
                                 vx: 3.0_f64.sqrt() / 2.0,
                                 vy: 0.5,
+                                trail_conc: 1.
                         },
                         walls,
                         2.0,
@@ -290,13 +327,20 @@ mod tests {
                         y: 1.5,
                         vx: angle.cos(),
                         vy: angle.sin(),
+                        trail_conc: 1.
                 };
                 let result =
                         dbg!(move_ant_by_n(ant.clone(), walls, n));
                 assert_eq!(round_float(result.x), 1.5);
                 assert_eq!(round_float(result.y), 1.5);
-                assert_eq!(round_float(result.vy), round_float(-ant.vy));
-                assert_eq!(round_float(result.vx), round_float(ant.vx));
+                assert_eq!(
+                        round_float(result.vy),
+                        round_float(-ant.vy)
+                );
+                assert_eq!(
+                        round_float(result.vx),
+                        round_float(ant.vx)
+                );
         }
 
         #[test]
@@ -307,20 +351,29 @@ mod tests {
                 walls[0][2] = true;
                 walls[1][0] = true;
                 walls[2][0] = true;
-                let n = f64::consts::SQRT_2*5.0/2.0;
+                let n = f64::consts::SQRT_2 * 5.0 / 2.0;
                 let angle = f64::consts::PI / 180.0 * (-135.0);
                 let ant = ant::Ant {
                         x: 2.0,
                         y: 3.0,
                         vx: angle.cos(),
                         vy: angle.sin(),
+                        trail_conc: 1.
                 };
-                let result =
-                        dbg!(move_ant_by_n(dbg!(ant.clone()), walls, n));
-                assert_eq!(round_float(result.x),1.5);
-                assert_eq!(round_float(result.y),1.5);
-                assert_eq!(round_float(result.vy), round_float(-ant.vy));
-                assert_eq!(round_float(result.vx), round_float(ant.vx));
-
+                let result = dbg!(move_ant_by_n(
+                        dbg!(ant.clone()),
+                        walls,
+                        n
+                ));
+                assert_eq!(round_float(result.x), 1.5);
+                assert_eq!(round_float(result.y), 1.5);
+                assert_eq!(
+                        round_float(result.vy),
+                        round_float(-ant.vy)
+                );
+                assert_eq!(
+                        round_float(result.vx),
+                        round_float(ant.vx)
+                );
         }
 }

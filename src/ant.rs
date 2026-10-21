@@ -7,6 +7,7 @@ pub struct Ant {
         pub y: f64,
         pub vx: f64,
         pub vy: f64,
+        pub trail_conc: f64,
 }
 
 #[pymethods]
