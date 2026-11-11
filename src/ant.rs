@@ -1,7 +1,8 @@
 use pyo3::prelude::*;
 
-#[pyclass(from_py_object)]
-#[derive(Clone, Debug)]
+#[derive(FromPyObject)]
+#[derive(IntoPyObject)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Ant {
         pub x: f64,
         pub y: f64,

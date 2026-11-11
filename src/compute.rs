@@ -1,9 +1,14 @@
 use crate::ant;
 use crate::constants;
+use crate::wall;
 use std::cell::RefCell;
+use std::ops::BitAnd;
+use std::path::Ancestors;
 use std::rc::Rc;
+use std::vec;
 
-//use pyo3::prelude::*;
+use pyo3::prelude::*;
+use pyo3::types::PyInt;
 
 /// rounds off floating point numbers to the nearest 1/2^16
 /// to prevent floating point errors in tests
@@ -44,6 +49,7 @@ fn is_oob(x: f64, y: f64) -> bool {
         }
         false
 }
+
 
 /// ticks the pathfinding for a vector of ants
 fn compute_ant_directions(
@@ -228,6 +234,54 @@ fn move_ants_by_n(
                 .iter_mut()
                 .map(|ant| move_ant_by_n(ant.clone(), walls, n));
         new_cords.collect::<Vec<ant::Ant>>()
+}
+
+#[pyfunction]
+#[pyo3(name = "demo_function")]
+pub fn python_tick<'py>( py: Python<'py>,py_int: Py<PyInt>, 
+//py_ant: Bound<'py, PyAny>
+ant: ant::Ant
+) -> PyResult<ant::Ant> {
+        println!("before");
+        let int: i32 = dbg!(py_int).extract(py)?;
+        println!("{} {:?}",int, ant);
+        assert_eq!(ant,ant::Ant {x:1.,y:1.,vx:0.,vy:0.,trail_conc:1.});
+        Ok(ant)
+}
+
+#[pyfunction]
+pub fn init_pheromones() -> PyResult<Vec<Vec<f64>>> {
+        Ok(vec![
+                vec![
+                        0.0;
+                        constants::DIMENTIONS[0] as usize
+                        ];
+                constants::DIMENTIONS[1] as usize])
+}
+
+#[pyfunction]
+pub fn tick(
+        mut ants: Vec<ant::Ant>,
+        vec_walls: Vec<wall::Wall>,
+        vec_pheromones: Vec<Vec<f64>>
+) -> PyResult<(Vec<ant::Ant>,Vec<Vec<f64>>)> {
+        let walls = wall::walls_to_mask(vec_walls);
+        let mut pheromones: [[f64; 96]; 60] = vec_pheromones
+                .iter()
+                .map(|x| (x.clone()).try_into().unwrap())
+                .collect::<Vec<[f64; constants::DIMENTIONS[0] as usize]>>()
+                .try_into().unwrap();
+        
+        ants = compute_ant_directions(ants, pheromones);
+        // diffuse
+        pheromones = place_pheremones(ants.clone(), pheromones);
+        ants = move_ants_by_n(ants, walls, constants::MOVE_SPEED);
+        Ok((
+                ants,
+                pheromones.to_vec()
+                .iter()
+                .map(|arr|arr.to_vec())
+                .collect()))
 }
 
 #[cfg(test)]

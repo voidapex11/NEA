@@ -7,8 +7,6 @@ import pygame
 from constants import *
 from state import State
 
-from nea import Ant as RustAnt
-
 
 def draw_rect(surface, colour, rect):
         pygame.draw.rect(surface, colour, rect)
@@ -27,10 +25,25 @@ def points_to_rect(point_a, point_b):
         return pygame.Rect(start, dimentions)
 
 
-class Ant(RustAnt):
-        def __init__(self, x, y):
-                self.x = x
-                self.y = y
+class Ant:
+        x = 0
+        y = 0
+        vx = 0.0
+        vy = 0.0
+        trail_conc = 1.0
+        def __init__(self, x:float, y:float):
+                self.x = float(x)
+                self.y = float(y)
+                #self.vx = float(0.0)
+                #self.vy = float(0.0)
+                #self.trail_conc = float(1.0)
+        
+        """Converts a dictionary into an ant. Assumes valid inputs."""
+        def into(dictionary: dict):
+                ant = Ant(0.0,0.0)
+                ant.__dict__.update(dictionary)
+                return ant
+
 
         def draw(self, surface):
                 screen_width, screen_height = SCREEN_DIMENTIONS
@@ -238,3 +251,32 @@ class RenderState(State):
                         rect.w += SMALL * 2
                         rect.h += SMALL * 2
                         pygame.draw.rect(surface, BLACK, rect)
+
+
+def draw_pheromones(pheromones,k):
+        out = ""
+        count = 0
+        for row in pheromones:
+                if count > k+1:
+                        pass#break
+                for item in row:
+                        if item!=0.0:
+                                out+="#"
+                        else:
+                                out+="_"
+                out+="\n"
+                count +=1
+        print(out)
+
+if __name__ == "__main__":
+        import nea
+        pheromones = nea.init_pheromones()
+        walls = []
+        ants = [Ant(2.0,3.0),Ant(2.0, 5.0)]
+        k=40
+        for i in range(k):
+                ants,pheromones=nea.tick(ants,walls,pheromones)
+                ants= [Ant.into(x) for x in ants]
+                draw_pheromones(pheromones,k)
+        
+        print([ant.__dict__ for ant in ants])

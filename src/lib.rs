@@ -1,5 +1,6 @@
 use pyo3::prelude::*;
 mod ant;
+mod wall;
 mod compute;
 mod constants;
 
@@ -8,12 +9,19 @@ mod constants;
 mod nea {
         use pyo3::prelude::*;
 
+        #[pymodule_export]
+        use super::compute::tick;
+        #[pymodule_export]
+        use super::compute::init_pheromones;
+
         /// Formats the sum of two numbers as string.
         #[pyfunction]
+        #[pyo3(warn(message = "2"))]
         fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
-                Ok((a + b).to_string())
+                println!("2");
+                Ok((a + b+2).to_string())
         }
 
-        #[pymodule_export]
-        use super::ant::Ant;
+        //#[pymodule_export]
+        //use super::ant::Ant;
 }
