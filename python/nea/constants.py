@@ -1,7 +1,7 @@
 """This file contains constants used throught my program. All
 constanst listed in this file should be in block capitals, to
 differenciate them from values that should be changed"""
-
+from nea import get_dimensions
 SCREEN_DIMENTIONS = (1920 / 2, 1200 / 2)
 FONT_HEIGHT = 32
 BORDER_HEIGHT = 10
@@ -13,7 +13,8 @@ BROWN = (165, 42, 42)
 WHITE = (255, 255, 255)
 EXPECTED_CONFIG_ID = "0626923d3f4bff490f9c663a37126dd09bb282fbe1fd637ed5dfae11c15b1bab"
 SETTING_FILE_PATH = "settings.json"
-DIMENTIONS = (SCREEN_DIMENTIONS[0] / 10, SCREEN_DIMENTIONS[1] / 10)
+DIMENTIONS = get_dimensions()
+#(SCREEN_DIMENTIONS[0] / 10, SCREEN_DIMENTIONS[1] / 10)
 WIDTH = round(DIMENTIONS[0])
 HEIGHT = round(DIMENTIONS[1])
 SMALL = 1

@@ -10,9 +10,11 @@ mod nea {
         use pyo3::prelude::*;
 
         #[pymodule_export]
-        use super::compute::tick;
+        use super::compute::tick_n;
         #[pymodule_export]
         use super::compute::init_pheromones;
+        #[pymodule_export]
+        use super::constants::get_dimensions;
 
         /// Formats the sum of two numbers as string.
         #[pyfunction]

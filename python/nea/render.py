@@ -2,7 +2,7 @@
 
 import itertools
 import math
-
+import random
 import pygame
 from constants import *
 from state import State
@@ -28,12 +28,17 @@ def points_to_rect(point_a, point_b):
 class Ant:
         x = 0
         y = 0
-        vx = 0.0
-        vy = 0.0
-        trail_conc = 1.0
+        wait_left = 0
+        wait_max = 1
+        trail_conc = 0.0
         def __init__(self, x:float, y:float):
                 self.x = float(x)
                 self.y = float(y)
+
+                angle = random.random()*math.pi
+                #angle = math.pi/180*60
+                self.vx = math.cos(angle)
+                self.vy = math.sin(angle)
                 #self.vx = float(0.0)
                 #self.vy = float(0.0)
                 #self.trail_conc = float(1.0)
@@ -253,7 +258,7 @@ class RenderState(State):
                         pygame.draw.rect(surface, BLACK, rect)
 
 
-def draw_pheromones(pheromones,k):
+def draw_pheromones(ants,pheromones,k):
         out = ""
         count = 0
         for row in pheromones:
@@ -261,22 +266,55 @@ def draw_pheromones(pheromones,k):
                         pass#break
                 for item in row:
                         if item!=0.0:
-                                out+="#"
+                                out+=str(int(item*10))[0]
                         else:
-                                out+="_"
+                                out+="."
                 out+="\n"
                 count +=1
-        print(out)
+        lines = [list(line) for line in out.splitlines()]
+        for ant in ants:
+                try:
+                        lines[int(ant.x)][int(ant.y)] = "#"
+                except:
+                        pass
+        out = "\n".join(["".join(line) for line in lines])
+        print(out + "\n")
+
+def decay(pheromones):
+        for x in range(len(pheromones)):
+                for y in range(len(pheromones[0])):
+                        value =pheromones[x][y]
+                        if value!=0:
+                                pheromones[x][y]-=1
+        return pheromones
+
+def get_random_point():
+        return random.randint(0,WIDTH-1),random.randint(0,HEIGHT-1)
 
 if __name__ == "__main__":
-        import nea
+        import nea, time
         pheromones = nea.init_pheromones()
         walls = []
-        ants = [Ant(2.0,3.0),Ant(2.0, 5.0)]
-        k=40
-        for i in range(k):
-                ants,pheromones=nea.tick(ants,walls,pheromones)
-                ants= [Ant.into(x) for x in ants]
-                draw_pheromones(pheromones,k)
+        shift = 12
         
-        print([ant.__dict__ for ant in ants])
+        #ants = [Ant(shift,shift) for i in range(8)]
+        ants = [Ant(get_random_point()[1],get_random_point()[0]) for i in range(20)]
+        #print([ant.__dict__ for ant in ants])
+        #exit(0)
+        k=500
+        #ants,pheromones = nea.tick_n(k,ants,walls,pheromones)
+        #exit(0)
+        for i in range(k):
+                #print([ant.__dict__ for ant in ants])
+                ants,pheromones=nea.tick_n(1,ants,walls,pheromones)
+                ants= [Ant.into(x) for x in ants]
+                #print(123456789)
+                draw_pheromones(ants, pheromones,k)
+                time.sleep(60/10/60)
+                
+                #if i%100 == 0:
+                #        pheromones=decay(pheromones)
+
+                #print([ant.__dict__ for ant in ants])
+        #print(done)
+        #draw_pheromones(ants,pheromones,k)

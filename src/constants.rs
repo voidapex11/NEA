@@ -1,7 +1,15 @@
 static SCREEN_DIMENTIONS: [i32; 2] = [1920 / 2, 1200 / 2];
 pub static DIMENTIONS: [i32; 2] =
-        [SCREEN_DIMENTIONS[0] / 10, SCREEN_DIMENTIONS[1] / 10];
+        [60,40];
+//        [SCREEN_DIMENTIONS[0] / 10, SCREEN_DIMENTIONS[1] / 10];
 pub static MOVE_SPEED: f64 = 1.0; 
+
+use pyo3::prelude::*;
+#[pyfunction]
+pub fn get_dimensions() -> PyResult<[i32; 2]> {
+        return Ok(DIMENTIONS);
+}
+
 /*
 points = []
 total = 0
