@@ -110,22 +110,42 @@ fn compute_ant_directions(
                                 s,
                                 |sum,pair| {
                                         let (ant, p) = pair;
+                                        
+                                        // correctly gets dy and dx
                                         let dy = p[1]-ant.y;
                                         let dx = p[0]-ant.x;
-                                        let mut angle:f64 = 0.0;
-                                        if dy !=0.0 {
-                                                angle = (dy/dx).atan();   
+
+                                        if dy==0.0 && dx ==0.0 {
+                                                return (0.0,0.0,p[2] / *sum * old[p[0]
+                                                                as usize]
+                                                                [p[1]as usize])
                                         }
                                         
-                                        (
+                                        let mut angle:f64 = 0.0;
+
+                                        if dx.is_normal() {
+                                                angle = (dy/dx).atan();
+                                                (
                                                 angle.cos(),
                                                 angle.sin(),
                                                 p[2] / *sum * old[p[0]
                                                 as usize]
                                                 [p[1]
-                                                        as usize])
+                                                        as usize]
+                                                )
+                                        } else if dx==0.0 {
+                                                (
+                                                        0.0,
+                                                        dy.signum(),
+                                                        p[2] / *sum * old[p[0]
+                                                                as usize]
+                                                                [p[1]as usize]
+                                                )
+                                        } else {
+                                                (0.0,0.0,0.0)
+                                        } 
                                 },
-                        )
+                        ).filter(|p|(*p).2!=0.0)
                 });
 
         let velocity_vectors = ajusted_values.map(|ant_iter| {
@@ -133,6 +153,9 @@ fn compute_ant_directions(
                 let sy = Rc::new(RefCell::new(0.0));
                 ant_iter.collect::<Vec<(f64,f64,f64)>>().iter().for_each(|triplet| {
                         let (dx, dy, magnitude) = triplet;
+                        if *magnitude==0.0{
+                                return
+                        }
                         let pending_change_x = dx * magnitude;
                         let pending_change_y = dy * magnitude;
                         {
@@ -158,7 +181,7 @@ fn compute_ant_directions(
                 )
                 .map(|pair| {
                         let (ant, (vx, vy)) = pair;
-                        let momentum = 0.0;
+                        let momentum = 2.0_f64.powi(8);
                         if !vx.is_nan() {
                                 ant.vx = (vx+momentum*ant.vx)/(momentum+1.0);
                         }
@@ -355,26 +378,15 @@ pub fn tick(
                 .map(|x| (x.clone()).try_into().unwrap())
                 .collect::<Vec<[f64; constants::DIMENTIONS[0] as usize]>>()
                 .try_into().unwrap();
-        /*ants = compute_ant_directions(
-                ants.clone()
-                .into_iter()
-                .filter(|ant|ant.wait_left==0)
-                .map(|mut ant|{ant.wait_left=ant.wait_max;ant})
-                .collect()
-                ,pheromones)
-                .into_iter()
-                .chain(
-                ants.into_iter()
-                .filter(|ant|ant.wait_left!=0))
-                .map(|mut ant|{ant.wait_left-=1;ant})
-                .collect();*/
+
         ants = compute_ant_directions(ants, pheromones);
         
-        // diffuse
         pheromones = place_pheremones(ants.clone(), pheromones);
+
+        // degrade
         ants = ants.clone().par_iter().cloned().map(|mut ant|
                 {
-                        let new = (1.0/ant.trail_conc)+1.0;
+                        let new = (1.0/ant.trail_conc)+0.0;
                         if new.is_normal() {
                                 ant.trail_conc = 1.0/new;
                         }

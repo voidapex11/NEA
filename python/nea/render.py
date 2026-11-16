@@ -30,13 +30,13 @@ class Ant:
         y = 0
         wait_left = 0
         wait_max = 1
-        trail_conc = 0.0
+        trail_conc = -1.0
         def __init__(self, x:float, y:float):
                 self.x = float(x)
                 self.y = float(y)
 
                 angle = random.random()*math.pi
-                #angle = math.pi/180*60
+                #angle = math.pi/180*45
                 self.vx = math.cos(angle)
                 self.vy = math.sin(angle)
                 #self.vx = float(0.0)
@@ -259,14 +259,15 @@ class RenderState(State):
 
 
 def draw_pheromones(ants,pheromones,k):
+        draw = False
         out = ""
         count = 0
         for row in pheromones:
                 if count > k+1:
                         pass#break
                 for item in row:
-                        if item!=0.0:
-                                out+=str(int(item*10))[0]
+                        if item!=0.0 and draw:
+                                out+=str(abs(int(item*10)))[0]
                         else:
                                 out+="."
                 out+="\n"
@@ -275,9 +276,13 @@ def draw_pheromones(ants,pheromones,k):
         for ant in ants:
                 try:
                         lines[int(ant.x)][int(ant.y)] = "#"
-                except:
-                        pass
-        out = "\n".join(["".join(line) for line in lines])
+                except Exception as e:
+                       print(e)
+        
+        lines[0][0]="+"
+        lines[0][1]="-"
+        lines[1][0]="|"
+        out = "\n".join(["".join(line) for line in lines[::-1]])
         print(out + "\n")
 
 def decay(pheromones):
@@ -285,7 +290,7 @@ def decay(pheromones):
                 for y in range(len(pheromones[0])):
                         value =pheromones[x][y]
                         if value!=0:
-                                pheromones[x][y]-=1
+                                pheromones[x][y]/=1.01
         return pheromones
 
 def get_random_point():
@@ -298,10 +303,10 @@ if __name__ == "__main__":
         shift = 12
         
         #ants = [Ant(shift,shift) for i in range(8)]
-        ants = [Ant(get_random_point()[1],get_random_point()[0]) for i in range(20)]
+        ants = [Ant(get_random_point()[1],get_random_point()[0]) for i in range(6)]
         #print([ant.__dict__ for ant in ants])
         #exit(0)
-        k=500
+        k=500_000
         #ants,pheromones = nea.tick_n(k,ants,walls,pheromones)
         #exit(0)
         for i in range(k):
@@ -310,9 +315,9 @@ if __name__ == "__main__":
                 ants= [Ant.into(x) for x in ants]
                 #print(123456789)
                 draw_pheromones(ants, pheromones,k)
-                time.sleep(60/10/60)
+                #time.sleep(60/60/60)
                 
-                #if i%100 == 0:
+                #if i%2 == 0:
                 #        pheromones=decay(pheromones)
 
                 #print([ant.__dict__ for ant in ants])
